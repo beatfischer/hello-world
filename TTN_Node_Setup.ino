@@ -56,7 +56,7 @@ void setup()
   node->configLight(true);
   node->configTemperature(true);
   node->configMotion(false);
-  node->configButton(false);
+  node->configButton(true);
   node->configUSB(false);
 
   node->onWake(wake);
