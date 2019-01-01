@@ -1,4 +1,5 @@
 #include <TheThingsNode.h>
+#include <TheThingsNetwork.h>
 
 // Set your DevAddr, NwkSKey, AppSKey and the frequency plan
 const char *devAddr = "26011CC4";
@@ -12,10 +13,14 @@ const char *appSKey = "880877AF3DBB9FF1379FA792FADB2718";
 TheThingsNetwork ttn(loraSerial, debugSerial, freqPlan);
 TheThingsNode *node;
 
+// Port definition
 #define PORT_SETUP 1
 #define PORT_INTERVAL 2
 #define PORT_MOTION 3
 #define PORT_BUTTON 4
+
+// Interval between send in seconds
+#define CONFIG_INTERVAL ((uint32_t) 300)
 
 /*
 Decoder payload function
@@ -52,7 +57,7 @@ void setup()
   // Config Node
   // Initial Node setup
   node = TheThingsNode::setup();
-  node->configInterval(true, 600000);
+  node->configInterval(true, CONFIG_INTERVAL*1000);
   node->configLight(true);
   node->configTemperature(true);
   node->configMotion(false);
@@ -62,6 +67,7 @@ void setup()
   node->onWake(wake);
   node->onSleep(sleep);
   node->onInterval(interval);
+  node->onTemperature(temperature);
   node->onMotionStart(motionStart);
   node->onMotionStop(motionStop);
   node->onButtonPress(buttonPress);
@@ -88,36 +94,30 @@ void loop()
 
 void wake()
 {
-  node->setColor(TTN_GREEN);
-
-  // Wake LoRaWAN module and show LoRaWAN and Node status
-  ttn.wake();
-  ttn.showStatus();
-  node->showStatus();
+  debugSerial.println("-- INFO: WAKE");
 }
 
 void sleep()
 {
   node->setColor(TTN_BLACK);
-
-  // Set asleep LoRaWAN module
-  ttn.sleep(6000000);
-  // This one is not optional, remove it and say bye bye to RN2983 sleep mode
-  delay(50);
+  debugSerial.println("-- INFO: SLEEP");
 }
 
 void interval()
 {
   node->setColor(TTN_GREEN);
-
   debugSerial.println("-- SEND: INTERVAL");
   sendData(PORT_INTERVAL);
+}
+
+void temperature()
+{
+  debugSerial.print("-- INFO: TEMPERATURE");
 }
 
 void motionStart()
 {
   node->setColor(TTN_BLUE);
-
   debugSerial.print("-- SEND: MOTION_START");
   sendData(PORT_MOTION);
 }
@@ -125,29 +125,33 @@ void motionStart()
 void motionStop()
 {
   node->setColor(TTN_BLACK);
-
   debugSerial.print("-- INFO: MOTION_STOP");
+  sendData(PORT_MOTION);
 }
 
-void buttonPress(unsigned long duration)
+void buttonPress()
 {
   node->setColor(TTN_BLUE);
-
   debugSerial.print("-- SEND: BUTTON_PRESS");
-  debugSerial.println(duration);
   sendData(PORT_BUTTON);
 }
 
 void buttonRelease(unsigned long duration)
 {
   node->setColor(TTN_BLACK);
-
   debugSerial.print("-- INFO: BUTTON_RELEASE");
   debugSerial.println(duration);
+  sendData(PORT_BUTTON);
 }
 
 void sendData(uint8_t port)
 {
+  // Wake LoRaWAN module and show LoRaWAN and Node status
+  ttn.wake();
+  ttn.showStatus();
+  node->showStatus();
+
+  // Prepare payload
   byte *bytes;
   byte payload[6];
 
@@ -169,5 +173,11 @@ void sendData(uint8_t port)
   payload[4] = bytes[1];
   payload[5] = bytes[0];
 
+  // Send payload
   ttn.sendBytes(payload, sizeof(payload), port);
+
+  // Set asleep LoRaWAN module
+  ttn.sleep(CONFIG_INTERVAL*1000);
+  // This one is not optional, remove it and say bye bye to RN2983 sleep mode
+  delay(50);
 }
