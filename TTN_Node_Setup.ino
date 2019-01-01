@@ -35,10 +35,6 @@ void setup()
   // Initial Node setup
   node = TheThingsNode::setup();
   node->configInterval(true, CONFIG_INTERVAL*1000);
-  node->configLight(true);
-  node->configTemperature(true);
-  node->configMotion(false);
-  node->configButton(true);
   node->configUSB(false);
 
   node->onWake(wake);
@@ -78,6 +74,10 @@ void sleep()
 {
   node->setColor(TTN_BLACK);
   debugSerial.println("-- INFO: SLEEP");
+  node->configLight(false);
+  node->configTemperature(false);
+  node->configMotion(false);
+  node->configButton(false);
 }
 
 void interval()
