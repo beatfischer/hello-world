@@ -52,15 +52,22 @@ void setup()
     ;
 
   // Config Node
+  // Initial Node setup
   node = TheThingsNode::setup();
-  node->configLight(true);
   node->configInterval(true, 60000);
+  node->configLight(true);
   node->configTemperature(true);
+  node->configMotion(false);
+  node->configButton(false);
+  node->configUSB(false);
+
   node->onWake(wake);
-  node->onInterval(interval);
   node->onSleep(sleep);
-  node->onMotionStart(onMotionStart);
-  node->onButtonRelease(onButtonRelease);
+  node->onInterval(interval);
+  node->onMotionStart(motionStart);
+  node->onMotionStop(motionStop);
+  node->onButtonPress(buttonPress);
+  node->onButtonRelease(buttonRelease);
 
   // Test sensors and set LED to GREEN if it works
   node->showStatus();
