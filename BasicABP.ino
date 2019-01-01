@@ -4,12 +4,10 @@
 const char *devAddr = "26011CC4";
 const char *nwkSKey = "120059049B852670EAC5E7AD2E5E035E";
 const char *appSKey = "880877AF3DBB9FF1379FA792FADB2718";
+#define freqPlan TTN_FP_EU868
 
 #define loraSerial Serial1
 #define debugSerial Serial
-
-// Replace REPLACE_ME with TTN_FP_EU868 or TTN_FP_US915
-#define freqPlan TTN_FP_EU868
 
 TheThingsNetwork ttn(loraSerial, debugSerial, freqPlan);
 TheThingsNode *node;
@@ -128,7 +126,7 @@ void motionStop()
 {
   node->setColor(TTN_BLACK);
 
-  debugSerial.print("-- SEND: MOTION_STOP");
+  debugSerial.print("-- INFO: MOTION_STOP");
 }
 
 void buttonPress(unsigned long duration)
@@ -137,7 +135,6 @@ void buttonPress(unsigned long duration)
 
   debugSerial.print("-- SEND: BUTTON_PRESS");
   debugSerial.println(duration);
-
   sendData(PORT_BUTTON);
 }
 
@@ -145,7 +142,7 @@ void buttonRelease(unsigned long duration)
 {
   node->setColor(TTN_BLACK);
 
-  debugSerial.print("-- SEND: BUTTON_RELEASE");
+  debugSerial.print("-- INFO: BUTTON_RELEASE");
   debugSerial.println(duration);
 }
 
