@@ -54,7 +54,7 @@ void setup()
   // Config Node
   // Initial Node setup
   node = TheThingsNode::setup();
-  node->configInterval(true, 60000);
+  node->configInterval(true, 600000);
   node->configLight(true);
   node->configTemperature(true);
   node->configMotion(false);
@@ -76,7 +76,7 @@ void setup()
   debugSerial.println("-- TTN: STATUS");
   ttn.showStatus();
 
-  debugSerial.println("-- TTN: JOIN");
+  debugSerial.println("-- TTN: PERSONALIZE");
   ttn.personalize(devAddr, nwkSKey, appSKey);
 
   debugSerial.println("-- SEND: SETUP");
@@ -88,50 +88,69 @@ void loop()
   node->loop();
 }
 
-void interval()
-{
-  node->setColor(TTN_BLUE);
-
-  debugSerial.println("-- SEND: INTERVAL");
-  sendData(PORT_INTERVAL);
-}
-
 void wake()
 {
   node->setColor(TTN_GREEN);
+
+  // Wake LoRaWAN module and show LoRaWAN and Node status
+  ttn.wake();
+  ttn.showStatus();
+  node->showStatus();
 }
 
 void sleep()
 {
   node->setColor(TTN_BLACK);
+
+  // Set asleep LoRaWAN module
+  ttn.sleep(6000000);
+  // This one is not optional, remove it and say bye bye to RN2983 sleep mode
+  delay(50);
 }
 
-void onMotionStart()
+void interval()
+{
+  node->setColor(TTN_GREEN);
+
+  debugSerial.println("-- SEND: INTERVAL");
+  sendData(PORT_INTERVAL);
+}
+
+void motionStart()
 {
   node->setColor(TTN_BLUE);
 
-  debugSerial.print("-- SEND: MOTION");
+  debugSerial.print("-- SEND: MOTION_START");
   sendData(PORT_MOTION);
 }
 
-void onButtonRelease(unsigned long duration)
+void motionStop()
+{
+  node->setColor(TTN_BLACK);
+
+  debugSerial.print("-- SEND: MOTION_STOP");
+}
+
+void buttonPress(unsigned long duration)
 {
   node->setColor(TTN_BLUE);
 
-  debugSerial.print("-- SEND: BUTTON");
+  debugSerial.print("-- SEND: BUTTON_PRESS");
   debugSerial.println(duration);
 
   sendData(PORT_BUTTON);
 }
 
+void buttonRelease(unsigned long duration)
+{
+  node->setColor(TTN_BLACK);
+
+  debugSerial.print("-- SEND: BUTTON_RELEASE");
+  debugSerial.println(duration);
+}
+
 void sendData(uint8_t port)
 {
-  // Wake RN2483
-  ttn.wake();
-
-  ttn.showStatus();
-  node->showStatus();
-
   byte *bytes;
   byte payload[6];
 
@@ -154,11 +173,4 @@ void sendData(uint8_t port)
   payload[5] = bytes[0];
 
   ttn.sendBytes(payload, sizeof(payload), port);
-
-  // Set RN2483 to sleep mode
-  ttn.sleep(60000);
-
-  // This one is not optionnal, remove it
-  // and say bye bye to RN2983 sleep mode
-  delay(50);
 }
