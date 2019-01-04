@@ -74,10 +74,6 @@ void sleep()
 {
   node->setColor(TTN_BLACK);
   debugSerial.println("-- INFO: SLEEP");
-  node->configLight(false);
-  node->configTemperature(false);
-  node->configMotion(false);
-  node->configButton(false);
 }
 
 void interval()
@@ -129,26 +125,22 @@ void sendData(uint8_t port)
   node->showStatus();
 
   // Prepare payload
-  byte *bytes;
   byte payload[6];
 
   uint16_t battery = node->getBattery();
   debugSerial.println(battery);
-  bytes = (byte *)&battery;
-  payload[0] = bytes[1];
-  payload[1] = bytes[0];
+  payload[0] = highByte[battery];
+  payload[1] = lowByte[battery];
 
   uint16_t light = node->getLight();
   debugSerial.println(light);
-  bytes = (byte *)&light;
-  payload[2] = bytes[1];
-  payload[3] = bytes[0];
+  payload[2] = highByte[light];
+  payload[3] = lowByte[light];
 
   int16_t temperature = round(node->getTemperatureAsFloat() * 100);
   debugSerial.println(temperature);
-  bytes = (byte *)&temperature;
-  payload[4] = bytes[1];
-  payload[5] = bytes[0];
+  payload[4] = highByte[temperature];
+  payload[5] = lowByte[temperature];
 
   // Send payload
   ttn.sendBytes(payload, sizeof(payload), port);
