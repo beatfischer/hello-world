@@ -2,9 +2,9 @@
 #include <TheThingsNetwork.h>
 
 // Set your DevAddr, NwkSKey, AppSKey and the frequency plan
-const char *devAddr = "26011CC4";
-const char *nwkSKey = "120059049B852670EAC5E7AD2E5E035E";
-const char *appSKey = "880877AF3DBB9FF1379FA792FADB2718";
+const char *devAddr = "26011E61";
+const char *nwkSKey = "4B5B2D9E182508FEB4014E55FE52F40E";
+const char *appSKey = "8118BD2E90721A833C02B3F1D6B2CB23";
 #define freqPlan TTN_FP_EU868
 
 #define loraSerial Serial1
@@ -35,7 +35,7 @@ void setup()
   // Initial Node setup
   node = TheThingsNode::setup();
   node->configInterval(true, CONFIG_INTERVAL*1000);
-  node->configUSB(false);
+  // node->configUSB(false);
 
   node->onWake(wake);
   node->onSleep(sleep);
@@ -129,18 +129,18 @@ void sendData(uint8_t port)
 
   uint16_t battery = node->getBattery();
   debugSerial.println(battery);
-  payload[0] = highByte[battery];
-  payload[1] = lowByte[battery];
+  payload[0] = highByte(battery);
+  payload[1] = lowByte(battery);
 
   uint16_t light = node->getLight();
   debugSerial.println(light);
-  payload[2] = highByte[light];
-  payload[3] = lowByte[light];
+  payload[2] = highByte(light);
+  payload[3] = lowByte(light);
 
   int16_t temperature = round(node->getTemperatureAsFloat() * 100);
   debugSerial.println(temperature);
-  payload[4] = highByte[temperature];
-  payload[5] = lowByte[temperature];
+  payload[4] = highByte(temperature);
+  payload[5] = lowByte(temperature);
 
   // Send payload
   ttn.sendBytes(payload, sizeof(payload), port);
